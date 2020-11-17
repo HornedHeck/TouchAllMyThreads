@@ -33,34 +33,41 @@ long long scalar_sync(vector<int> a, vector<int> b) {
     return sum;
 }
 
-void test_omp(const vector<int> &a, const vector<int> &b, int threads) {
+void test_omp(const vector<int> &a, const vector<int> &b, int threads, long long expected) {
     omp_set_num_threads(threads);
     auto start = system_clock::now();
-    scalar(a, b);
+    auto res = scalar(a, b);
     auto end = system_clock::now();
-    std::cout << "OMP-" << threads << ": " << duration_cast<UNIT>(end - start).count() << std::endl;
+    std::cout << "OMP-" << threads << ": " << duration_cast<UNIT>(end - start).count() << " ";
+    if (res == expected) {
+        std::cout << "Correct\n";
+    } else {
+        std::cout << "Wrong\n";
+        exit(1);
+    }
 }
 
 int main() {
     vector<int> a, b;
-    for (int i = 0; i < 100000000; ++i) {
+    for (int i = 0; i < 1000000; ++i) {
         a.push_back(random() % 1000 - 500);
         b.push_back(random() % 1000 - 500);
     }
 
+    long long res;
     auto start = system_clock::now();
-    scalar_sync(a, b);
+    res = scalar_sync(a, b);
     auto end = system_clock::now();
     std::cout << "Sync: " << duration_cast<UNIT>(end - start).count() << std::endl;
 
     omp_set_dynamic(false);
-    test_omp(a, b, 2);
-    test_omp(a, b, 4);
-    test_omp(a, b, 8);
-    test_omp(a, b, 16);
-    test_omp(a, b, 32);
-    test_omp(a, b, 64);
-    test_omp(a, b, 128);
+    test_omp(a, b, 2, res);
+    test_omp(a, b, 4, res);
+    test_omp(a, b, 8, res);
+    test_omp(a, b, 16, res);
+    test_omp(a, b, 32, res);
+    test_omp(a, b, 64, res);
+    test_omp(a, b, 128, res);
 
     return 0;
 }
